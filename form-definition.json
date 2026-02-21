@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "fields": {
+    "mother_name": [
+      { "type": "required" },
+      { "type": "min_length", "value": 5 }
+    ],
+    "email": [
+      { "type": "required" },
+      { "type": "email" }
+    ]
+  }
+}
