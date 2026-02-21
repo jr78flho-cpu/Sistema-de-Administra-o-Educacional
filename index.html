@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>SAE Next Gen</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>SAE Next Gen</h1>
+
+<form id="enrollmentForm">
+  <label>Nome da Mãe</label>
+  <input type="text" id="mother_name" />
+  <small class="error" id="error_mother_name"></small>
+
+  <label>Email</label>
+  <input type="email" id="email" />
+  <small class="error" id="error_email"></small>
+
+  <button type="submit">Salvar</button>
+</form>
+
+<button id="assistantBtn">Assistente</button>
+<div id="assistantBox" class="assistant-box"></div>
+
+<script type="module">
+
+import { RuleEngine } from './rule-engine.js';
+import { Assistant } from './assistant.js';
+import { AdaptiveEngine } from './adaptive-engine.js';
+import { TrustEngine } from './trust-engine.js';
+import { Audit } from './audit.js';
+
+const formDefinition = {
+  rules: {
+    mother_name: [
+      { type: "required" },
+      { type: "min_length", value: 5 }
+    ],
+    email: [
+      { type: "required" },
+      { type: "email" }
+    ]
+  }
+};
+
+const form = document.getElementById("enrollmentForm");
+const assistantBox = document.getElementById("assistantBox");
+
+function validateField(fieldId) {
+  const input = document.getElementById(fieldId);
+  const value = input.value;
+
+  const errors = RuleEngine.validate(fieldId, value, formDefinition);
+
+  const errorElement = document.getElementById("error_" + fieldId);
+
+  if (errors.length) {
+    errorElement.innerText = Assistant.respond(fieldId, errors);
+    AdaptiveEngine.updateErrorStats(fieldId, errors[0].type);
+  } else {
+    errorElement.innerText = "";
+  }
+
+  return errors;
+}
+
+document.getElementById("mother_name")
+  .addEventListener("blur", () => validateField("mother_name"));
+
+document.getElementById("email")
+  .addEventListener("blur", () => validateField("email"));
+
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const errorsMother = validateField("mother_name");
+  const errorsEmail = validateField("email");
+
+  if (!errorsMother.length && !errorsEmail.length) {
+
+    const trustScore = TrustEngine.calculate({
+      structural: 1,
+      contextual: 1,
+      behavior: 0.9,
+      completeness: 1,
+      historical: 0.8
+    });
+
+    Audit.log("FORM_SUBMITTED", 1);
+
+    alert("Cadastro salvo.\nTrust Score: " + trustScore);
+  }
+});
+
+document.getElementById("assistantBtn")
+  .addEventListener("click", () => {
+    assistantBox.innerText =
+      "Preencha todos os campos corretamente.\n" +
+      "Se houver erro, o sistema explicará como corrigir.";
+  });
+
+</script>
+
+</body>
+</html>
