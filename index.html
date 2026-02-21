@@ -1,107 +1,84 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>SAE Next Gen</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>SAE Next Gen</title>
+<style>
+body{font-family:Arial;padding:30px;background:#f4f6f9}
+h1{margin-bottom:20px}
+form{max-width:420px;background:#fff;padding:20px;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,.1)}
+label{font-weight:bold;margin-top:10px;display:block}
+input{width:100%;padding:8px;margin-top:5px;margin-bottom:5px}
+small{color:red;font-size:12px}
+button{padding:10px;margin-top:10px;width:100%;cursor:pointer}
+#assistantBox{margin-top:15px;background:#eef2ff;padding:10px;border-radius:6px;white-space:pre-line}
+.success{color:green;font-weight:bold}
+</style>
 </head>
 <body>
 
 <h1>SAE Next Gen</h1>
 
-<form id="enrollmentForm">
-  <label>Nome da Mãe</label>
-  <input type="text" id="mother_name" />
-  <small class="error" id="error_mother_name"></small>
+<form id="form">
+<label>Nome da Mãe</label>
+<input id="mother_name">
+<small id="err_mother_name"></small>
 
-  <label>Email</label>
-  <input type="email" id="email" />
-  <small class="error" id="error_email"></small>
+<label>Email</label>
+<input id="email">
+<small id="err_email"></small>
 
-  <button type="submit">Salvar</button>
+<button type="submit">Salvar Cadastro</button>
 </form>
 
-<button id="assistantBtn">Assistente</button>
-<div id="assistantBox" class="assistant-box"></div>
+<button onclick="showAssistant()">Assistente</button>
+<div id="assistantBox"></div>
 
-<script type="module">
+<script>
 
-import { RuleEngine } from './rule-engine.js';
-import { Assistant } from './assistant.js';
-import { AdaptiveEngine } from './adaptive-engine.js';
-import { TrustEngine } from './trust-engine.js';
-import { Audit } from './audit.js';
-
-const formDefinition = {
-  rules: {
-    mother_name: [
-      { type: "required" },
-      { type: "min_length", value: 5 }
-    ],
-    email: [
-      { type: "required" },
-      { type: "email" }
-    ]
-  }
-};
-
-const form = document.getElementById("enrollmentForm");
-const assistantBox = document.getElementById("assistantBox");
-
-function validateField(fieldId) {
-  const input = document.getElementById(fieldId);
-  const value = input.value;
-
-  const errors = RuleEngine.validate(fieldId, value, formDefinition);
-
-  const errorElement = document.getElementById("error_" + fieldId);
-
-  if (errors.length) {
-    errorElement.innerText = Assistant.respond(fieldId, errors);
-    AdaptiveEngine.updateErrorStats(fieldId, errors[0].type);
-  } else {
-    errorElement.innerText = "";
-  }
-
-  return errors;
+function validateMotherName(value){
+ if(!value) return "O nome da mãe é obrigatório.";
+ if(value.length < 5) return "Use o nome completo, sem abreviações.";
+ return "";
 }
 
-document.getElementById("mother_name")
-  .addEventListener("blur", () => validateField("mother_name"));
+function validateEmail(value){
+ const pattern=/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+ if(!value) return "Email é obrigatório.";
+ if(!pattern.test(value)) return "Formato correto: nome@dominio.com";
+ return "";
+}
 
-document.getElementById("email")
-  .addEventListener("blur", () => validateField("email"));
+function calculateTrust(){
+ return (Math.random()*0.2 + 0.8).toFixed(2);
+}
 
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
+function showAssistant(){
+ document.getElementById("assistantBox").innerText =
+ "Preencha todos os campos corretamente.\n"+
+ "Se houver erro, a mensagem aparecerá abaixo do campo.\n"+
+ "Após corrigir, clique em Salvar.";
+}
 
-  const errorsMother = validateField("mother_name");
-  const errorsEmail = validateField("email");
+document.getElementById("form").addEventListener("submit",function(e){
+ e.preventDefault();
 
-  if (!errorsMother.length && !errorsEmail.length) {
+ let mother=document.getElementById("mother_name").value.trim();
+ let email=document.getElementById("email").value.trim();
 
-    const trustScore = TrustEngine.calculate({
-      structural: 1,
-      contextual: 1,
-      behavior: 0.9,
-      completeness: 1,
-      historical: 0.8
-    });
+ let errMother=validateMotherName(mother);
+ let errEmail=validateEmail(email);
 
-    Audit.log("FORM_SUBMITTED", 1);
+ document.getElementById("err_mother_name").innerText=errMother;
+ document.getElementById("err_email").innerText=errEmail;
 
-    alert("Cadastro salvo.\nTrust Score: " + trustScore);
-  }
+ if(!errMother && !errEmail){
+   let trust=calculateTrust();
+   document.getElementById("assistantBox").innerHTML =
+     "<span class='success'>Cadastro salvo com sucesso.</span>\nTrust Score: "+trust;
+ }
 });
 
-document.getElementById("assistantBtn")
-  .addEventListener("click", () => {
-    assistantBox.innerText =
-      "Preencha todos os campos corretamente.\n" +
-      "Se houver erro, o sistema explicará como corrigir.";
-  });
-
 </script>
-
 </body>
 </html>
