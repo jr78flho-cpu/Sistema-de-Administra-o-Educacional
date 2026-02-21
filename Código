@@ -1,0 +1,27 @@
+sae-nextgen/
+│
+├── index.html
+├── styles.css
+├── manifest.webmanifest
+├── sw.js
+├── README.md
+│
+├── /config
+│   └── form-definition.json
+│
+├── /components
+│   ├── enrollment.js
+│   ├── validator.js
+│   ├── rule-engine.js
+│   ├── assistant.js
+│   ├── trust-engine.js
+│   ├── duplicate-check.js
+│   ├── adaptive-engine.js
+│   └── audit.js
+│
+├── /data
+│   ├── data-layer.js
+│   └── schema_mysql.sql
+│
+└── /api-docs
+    └── openapi.json
